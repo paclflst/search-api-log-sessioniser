@@ -4,11 +4,11 @@ This is a demo a data pipeline to sessionise sample Search API Logs
 
 The solution consists of 4 parts:
 - Airflow to orchestrate the process and start jobs
+- Postgres db to facilitate Airflow
 - Spark to process api log data
-- Postgres db to facilitate airflow
 - Jupyter notebook to explore Spark transformations 
 
-![alt text](https://github.com/paclflst/search-api-log-sessioniser/blob/main/images/prj_setup_schema.png?raw=true)
+![alt text](https://github.com/paclflst/search-api-log-sessioniser/blob/master/images/prj_setup_schema.png?raw=true)
 
 ### Prerequisites
 
@@ -49,7 +49,7 @@ To execute the import use Airflow web UI to trigger search-api-log-session-pipel
 
 [http://localhost:8282/](http://localhost:8282/)
 
-![alt text](https://github.com/paclflst/search-api-log-sessioniser/blob/main/images/dag_main_screen.png?raw=true)
+![alt text](https://github.com/paclflst/search-api-log-sessioniser/blob/master/images/dag_main_screen.png?raw=true)
 
 or use command
 

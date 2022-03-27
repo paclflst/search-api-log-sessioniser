@@ -6,7 +6,6 @@ services:
         networks:
             - default_net
         volumes: 
-            # Create Test database on Postgresql
             - ./docker-airflow/pg-init-scripts:/docker-entrypoint-initdb.d
         environment:
             - POSTGRES_USER=airflow
@@ -27,7 +26,6 @@ services:
             - LOAD_EX=n
             - EXECUTOR=Local
             - AIRFLOW_CONN_STR_SPARK_DEFAULT=spark://spark:7077
-            - AIRFLOW_CONN_POSTGRES_FOR_SPARK=postgres://test:postgres@postgres/test
             - LOG_FILE=/usr/local/spark/logs/outfile.log
             - LOG_LEVEL=DEBUG
         volumes:
@@ -85,6 +83,44 @@ services:
             - ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
             - ../logs:/usr/local/spark/logs
 
+    spark-worker-2:
+        image: bitnami/spark:3.1.2
+        user: root
+        networks:
+            - default_net
+        environment:
+            - SPARK_MODE=worker
+            - SPARK_MASTER_URL=spark://spark:7077
+            - SPARK_WORKER_MEMORY=1100m
+            - SPARK_WORKER_CORES=1
+            - SPARK_RPC_AUTHENTICATION_ENABLED=no
+            - SPARK_RPC_ENCRYPTION_ENABLED=no
+            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+            - SPARK_SSL_ENABLED=no
+        volumes:
+            - ../spark/app:/usr/local/spark/app # Spark scripts folder (Must be the same path in airflow and Spark Cluster)
+            - ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+            - ../logs:/usr/local/spark/logs
+
+    spark-worker-3:
+        image: bitnami/spark:3.1.2
+        user: root
+        networks:
+            - default_net
+        environment:
+            - SPARK_MODE=worker
+            - SPARK_MASTER_URL=spark://spark:7077
+            - SPARK_WORKER_MEMORY=1100m
+            - SPARK_WORKER_CORES=1
+            - SPARK_RPC_AUTHENTICATION_ENABLED=no
+            - SPARK_RPC_ENCRYPTION_ENABLED=no
+            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+            - SPARK_SSL_ENABLED=no
+        volumes:
+            - ../spark/app:/usr/local/spark/app # Spark scripts folder (Must be the same path in airflow and Spark Cluster)
+            - ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+            - ../logs:/usr/local/spark/logs
+
     
     # Jupyter notebook
     jupyter-spark:
@@ -102,40 +138,3 @@ services:
           
 networks:
     default_net:
-    # spark-worker-2:
-    #     image: bitnami/spark:3.1.2
-    #     user: root
-    #     networks:
-    #         - default_net
-    #     environment:
-    #         - SPARK_MODE=worker
-    #         - SPARK_MASTER_URL=spark://spark:7077
-    #         - SPARK_WORKER_MEMORY=1100m
-    #         - SPARK_WORKER_CORES=1
-    #         - SPARK_RPC_AUTHENTICATION_ENABLED=no
-    #         - SPARK_RPC_ENCRYPTION_ENABLED=no
-    #         - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-    #         - SPARK_SSL_ENABLED=no
-    #     volumes:
-    #         - ../spark/app:/usr/local/spark/app # Spark scripts folder (Must be the same path in airflow and Spark Cluster)
-    #         - ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
-    #         - ../logs:/usr/local/spark/logs
-
-    # spark-worker-3:
-    #     image: bitnami/spark:3.1.2
-    #     user: root
-    #     networks:
-    #         - default_net
-    #     environment:
-    #         - SPARK_MODE=worker
-    #         - SPARK_MASTER_URL=spark://spark:7077
-    #         - SPARK_WORKER_MEMORY=1100m
-    #         - SPARK_WORKER_CORES=1
-    #         - SPARK_RPC_AUTHENTICATION_ENABLED=no
-    #         - SPARK_RPC_ENCRYPTION_ENABLED=no
-    #         - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-    #         - SPARK_SSL_ENABLED=no
-    #     volumes:
-    #         - ../spark/app:/usr/local/spark/app # Spark scripts folder (Must be the same path in airflow and Spark Cluster)
-    #         - ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
-    #         - ../logs:/usr/local/spark/logs
