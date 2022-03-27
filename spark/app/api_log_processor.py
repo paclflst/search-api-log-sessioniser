@@ -57,7 +57,7 @@ try:
                     ELSE NULL END
                 ) OVER(PARTITION BY api_key ORDER BY api_timestamp)
             AS session_flag
-            from (
+            FROM (
                 -- get previous timestamp and input for every log record
                 SELECT api_key, input, api_timestamp
                     , LAG(input) OVER(partition by api_key ORDER BY api_timestamp) prev_input
@@ -87,6 +87,8 @@ try:
         new_sessions_df = agg_log_df
     else:
         session_df = st_ser.get_df_from_file(spark, session_schema, key_cols, f'{target_folder}/*', target_folder)
+        log_part_df = agg_log_df.select(*key_cols).distinct()
+        session_df = session_df.join(log_part_df, log_part_df.api_key==session_df.api_key, 'leftsemi')
         session_df = session_df.cache()
         logger.debug(f'session_df count: {session_df.count()}')
 
@@ -120,6 +122,7 @@ try:
             ,  overlap_session_condition
             , "inner"
         )
+        overlap_sessions_df = overlap_sessions_df.cache()
 
         # Get existing session records where inputs are added by current batch
         upd_session_df = overlap_sessions_df \
@@ -128,11 +131,24 @@ try:
             .dropDuplicates(['session_key']) \
             .select(
                 session_df.session_key,
+                agg_log_df.session_key.alias('session_key_new'),
                 least(session_df.session_start, agg_log_df.session_start).alias('session_start'),
                 greatest(session_df.session_end, agg_log_df.session_end).alias('session_end'),
                 concat(session_df.inputs, agg_log_df.inputs).alias('inputs'),
                 session_df.api_key
         )
+
+        # Process new records
+        overlap_sessions_df = overlap_sessions_df.select(agg_log_df['*'])
+        new_inputs_df = overlap_sessions_df.join(
+            upd_session_df
+            , [upd_session_df.api_key==overlap_sessions_df.api_key, upd_session_df.session_key_new==overlap_sessions_df.session_key]
+            , "leftanti"
+        )
+        logger.debug(f'new_inputs_df count: {new_inputs_df.count()}')
+        upd_session_df = upd_session_df.drop('session_key_new')
+        new_sessions_df = new_sessions_df.union(new_inputs_df)
+
 
         # Get session partitions to overwrite
         part_df = upd_session_df.select(*key_cols).distinct()
