@@ -1,4 +1,4 @@
-## Amazon Product Data Pipeline
+## API Log Sessioniser
 
 This is a demo a data pipeline to sessionise sample Search API Logs
 
